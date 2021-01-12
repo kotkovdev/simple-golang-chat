@@ -1,8 +1,6 @@
 package main
 
-import (
-	"goChat/server"
-)
+import "github.com/kotkovdev/simple-golang-chat/server"
 
 func main() {
 	server.Serve()
