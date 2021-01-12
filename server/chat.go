@@ -1,21 +1,22 @@
 package server
 
 import (
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/websocket"
 )
 
 type Message struct {
-	Token string `json:"token"`
-	Name string `json:"name"`
+	Token   string `json:"token"`
+	Name    string `json:"name"`
 	Message string `json:"message"`
 }
 
-var clients = make(map[*websocket.Conn]bool) // connected clients
-var broadcast = make(chan Message)           // broadcast channel
+var clients = make(map[*websocket.Conn]struct{}) // connected clients
+var broadcast = make(chan Message)               // broadcast channel
 
-func HandleConnections(w http.ResponseWriter, r *http.Request)  {
+func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	var upgrader = websocket.Upgrader{}
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -23,7 +24,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request)  {
 	}
 
 	defer ws.Close()
-	clients[ws] = true
+	clients[ws] = struct{}{}
 
 	for {
 		var msg Message
@@ -39,9 +40,9 @@ func HandleConnections(w http.ResponseWriter, r *http.Request)  {
 	}
 }
 
-func HandleMessages()  {
+func HandleMessages() {
 	for {
-		msg := <- broadcast
+		msg := <-broadcast
 
 		log.Println(msg)
 		for client := range clients {
@@ -54,4 +55,3 @@ func HandleMessages()  {
 		}
 	}
 }
-
